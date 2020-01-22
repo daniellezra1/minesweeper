@@ -1,0 +1,56 @@
+body {
+    text-align: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+table {
+    margin: 8px auto;
+}
+
+td {
+    width: 25px;
+    height: 25px;
+    color: rgb(3, 99, 99);
+    font-weight: bold;
+    background-color: rosybrown;
+    cursor: pointer;
+}
+
+td:hover {
+    background-color: thistle;
+}
+
+.cell:hover {
+    background-color: thistle;
+}
+
+.modal-game-over,
+.modal-victorious {
+  font-size: 1.5rem;
+  position: absolute;
+  margin: auto;
+  left: 0;
+  right: 0;
+  top: 20px;
+  width: 200px;
+  height: 70px;
+  box-shadow: 0px 0px 10px 1px rgba(0,0,0,0.62);
+  text-align: center;
+  padding: 5px;
+  background-color: rosybrown;
+  border: 3px solid white;
+}
+
+.visible {
+    background-color: thistle;
+}
+
+.hidden {
+    background-color: rosybrown;
+}
+
+.smiley {
+    margin-top: 10px;
+    margin-bottom: 0;
+    cursor: pointer;
+}
