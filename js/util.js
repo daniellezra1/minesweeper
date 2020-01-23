@@ -47,8 +47,112 @@ function renderCellHidden(location, value) {
     elCell.classList.remove("visible")
 }
 
+var darkMode = false
+
+function setMode(elBtn) {
+    if (!darkMode) {
+        elBtn.innerText = 'Light Mode'
+        darkMode = true
+    } else {
+        elBtn.innerText = 'Dark Mode'
+        darkMode = false
+    }
+    document.querySelector('body').classList.toggle('dark-mode')
+}
+
+var gTimeInterval = null
+var seconds = 0
+var minutes = 0
+var newSeconds = 0
+var newMinutes = 0
+
+function displayTime() {
+    seconds++
+    newSeconds = (seconds < 10) ? '0' + seconds.toString() : seconds
+    newMinutes = (minutes < 10) ? '0' + minutes.toString() : minutes
+    if (seconds / 60 === 1) {
+        seconds = 0
+        minutes++
+    }
+    document.querySelector('.stopwatch b').innerText = `${newMinutes}:${newSeconds}`
+}
+
+function pauseTime() {
+    clearInterval(gTimeInterval)
+    gTimeInterval = null
+    seconds = 0
+    minutes = 0
+    newSeconds = 0
+    newMinutes = 0
+    document.querySelector('.stopwatch b').innerText = '00:00'
+}
+
 function getRandomInt(min, max) {
     min = Math.ceil(min)
     max = Math.floor(max)
     return Math.floor(Math.random() * (max - min)) + min
+}
+
+// Retrieve the object from storage
+function getbestScore() {
+    if (!localStorage.getItem('bestScore')) {
+        localStorage.setItem('bestScore', JSON.stringify(gGame.bestScore))
+    } else {
+        var retrievedObject = localStorage.getItem('bestScore')
+        var bestScore = JSON.parse(retrievedObject)
+        var levelBestTime = document.querySelector('.best-score b')
+        if (gGame.level.height === 4 && gGame.level.width === 4) {
+            levelBestTime.innerText = bestScore.Easy
+            gGame.bestScore.Easy = bestScore.Easy
+        } else if (gGame.level.height === 8 && gGame.level.width === 8) {
+            levelBestTime.innerText = bestScore.Hard
+            gGame.bestScore.Hard = bestScore.Hard
+        } else if (gGame.level.height === 12 && gGame.level.width === 12) {
+            levelBestTime.innerText = bestScore.Extreme
+            gGame.bestScore.Extreme = bestScore.Extreme
+        } else {
+            levelBestTime.innerText = bestScore.Custom
+            gGame.bestScore.Custom = bestScore.Custom
+        }
+    }
+}
+
+// Put the object into storage
+function setbestScore() {
+    var retrievedObject = localStorage.getItem('bestScore')
+    var bestScore = JSON.parse(retrievedObject)
+
+    if (gGame.level.height === 4 && gGame.level.width === 4) {
+        if (minutes < +bestScore.Easy.split(':')[0]) {
+            gGame.bestScore.Easy = `${minutes}:${seconds}`
+            localStorage.setItem('bestScore', JSON.stringify(gGame.bestScore))
+        } else if ((minutes === +bestScore.Easy.split(':')[0]) && (seconds <= +bestScore.Easy.split(':')[1])) {
+            gGame.bestScore.Easy = `${minutes}:${seconds}`
+            localStorage.setItem('bestScore', JSON.stringify(gGame.bestScore))
+        }
+    } else if (gGame.level.height === 8 && gGame.level.width === 8) {
+        if (minutes < +bestScore.Hard.split(':')[0]) {
+            gGame.bestScore.Hard = `${minutes}:${seconds}`
+            localStorage.setItem('bestScore', JSON.stringify(gGame.bestScore))
+        } else if ((minutes === +bestScore.Hard.split(':')[0]) && (seconds <= +bestScore.Hard.split(':')[1])) {
+            gGame.bestScore.Hard = `${minutes}:${seconds}`
+            localStorage.setItem('bestScore', JSON.stringify(gGame.bestScore))
+        }
+    } else if (gGame.level.height === 12 && gGame.level.width === 12) {
+        if (minutes < +bestScore.Extreme.split(':')[0]) {
+            gGame.bestScore.Extreme = `${minutes}:${seconds}`
+            localStorage.setItem('bestScore', JSON.stringify(gGame.bestScore))
+        } else if ((minutes === +bestScore.Extreme.split(':')[0]) && (seconds <= +bestScore.Extreme.split(':')[1])) {
+            gGame.bestScore.Extreme = `${minutes}:${seconds}`
+            localStorage.setItem('bestScore', JSON.stringify(gGame.bestScore))
+        }
+    } else {
+        if (minutes < +bestScore.Custom.split(':')[0]) {
+            gGame.bestScore.Custom = `${minutes}:${seconds}`
+            localStorage.setItem('bestScore', JSON.stringify(gGame.bestScore))
+        } else if ((minutes === +bestScore.Custom.split(':')[0]) && (seconds <= +bestScore.Custom.split(':')[1])) {
+            gGame.bestScore.Custom = `${minutes}:${seconds}`
+            localStorage.setItem('bestScore', JSON.stringify(gGame.bestScore))
+        }
+    }
 }

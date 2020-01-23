@@ -15,14 +15,22 @@
         <h1>Mine Sweeper</h1>
     </div>
 
+    <button class="set-mode" onclick="setMode(this)">Dark Mode</button>
+
     <div class="information">
-        <p>
-            <span class="mines-left-counter">Mines Left: <b></b> | </span>
-            <span class="stopwatch">Time: <b></b></span>
-        </p>
+        <span class="best-score">Best Score: <b></b></span><br />
+        <span class="mines-left-counter">Mines Left: <b></b> | </span>
+        <span class="stopwatch">Time: <b>00:00</b> | </span>
+        <span class="lives-count">Lives: <b>❤️❤️❤️</b></span></p>
         <button onclick="initGame(4, 4, 2)">Easy</button>
         <button onclick="initGame(8, 8, 12)">Hard</button>
-        <button onclick="initGame(12, 12, 30)">Extreme!</button>
+        <button onclick="initGame(12, 12, 30)">Extreme</button>
+        <button onclick="customGame()">Custom</button>
+        <br />
+        <button onclick="getHint()">Hint <span class="hints-count">(3)</spanclass="hints"></button>
+        <button onclick="getSafeClick()">Safe-Click <span class="safe-clicks-count">(3)</spanclass="hints"></button>
+        <!-- <button onclick="useLive()">Lives <span class="lives-count">(3)</spanclass="hints"></button> -->
+
     </div>
 
     <div class="modal-game-over" hidden="true">

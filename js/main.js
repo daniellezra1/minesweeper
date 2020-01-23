@@ -12,7 +12,8 @@ var gGame = {
         height: 0,
         width: 0,
         mines: 0
-    }
+    },
+    bestScore: { 'Easy': '99:99', 'Hard': '99:99', 'Extreme': '99:99', 'Custom': '99:99' }
 }
 
 var gMines = []
@@ -22,6 +23,10 @@ const MINE = '💣'
 const FLAG = '🚩'
 const EMPTY = ''
 var firstClick = true
+var hints = 3
+var hintOn = false
+var safeClicks = 3
+var lives = 3
 
 // Functions:
 
@@ -33,12 +38,21 @@ function initGame(height = gGame.level.height, width = gGame.level.width, minesN
     gGame.level.mines = minesNum
     gGame.level.height = height
     gGame.level.width = width
+    getbestScore()
     gMines = []
     gMines = createMines(minesNum, height, width)
     gBoard = createBoard(height, width)
+    hints = 3
+    hintOn = false
+    document.querySelector('span.hints-count').innerText = `(${hints})`
+    safeClicks = 3
+    document.querySelector('span.safe-clicks-count').innerText = `(${safeClicks})`
+    lives = 3
+    document.querySelector('.lives-count b').innerText = '❤️❤️❤️'
     renderBoard(gBoard)
     setMines()
     setMinesNegsCount()
+    pauseTime()
     gGame.minesLeft = minesNum
     document.querySelector('.mines-left-counter b').innerText = gGame.minesLeft
 }
@@ -46,6 +60,8 @@ function initGame(height = gGame.level.height, width = gGame.level.width, minesN
 function cellClicked(event, i, j) {
     if (event.button === 0 || event.button === 1) {
         if (firstClick) {
+            gTimeInterval = setInterval(displayTime, 1000)
+            firstClick = false
             while (gBoard[i][j].value === MINE) {
                 gBoard = []
                 gMines = []
@@ -55,13 +71,16 @@ function cellClicked(event, i, j) {
                 setMines()
                 setMinesNegsCount()
             }
-            firstClick = false
             checkCell(i, j)
             return
         } else {
             checkCell(i, j)
         }
     } else if (event.button === 2) {
+        if (firstClick) {
+            gTimeInterval = setInterval(displayTime, 1000)
+            firstClick = false
+        }
         markedCell(i, j)
     }
 }
@@ -71,25 +90,42 @@ function checkCell(i, j) {
     if (!gGame.isOn) return
 
     var location = { i: i, j: j }
-    gGame.shownCount++
-    if (gBoard[i][j].isMine) {
-        gBoard[i][j].isShown = true
-        for (var d = 0; d < gMines.length; d++) {
-            renderCellVisible(gMines[d].location, MINE)
-        }
-        gGame.isOn = false
-        document.querySelector('.modal-game-over').hidden = false
-        document.querySelector('.smiley').innerText = '😥'
-        console.log('Game over')
-    } else if (typeof (gBoard[i][j]).value === 'number') {
-        gBoard[i][j].isShown = true
-        renderCellVisible(location, gBoard[i][j].value)
-        checkVictory()
+
+    if (hintOn) {
+        revealCellsHint(gBoard, i, j)
+        hintOn = false
     } else {
-        expandShown(gBoard, i, j)
-        gBoard[i][j].isShown = true
-        renderCellVisible(location, gBoard[i][j].value)
-        checkVictory()
+
+        gGame.shownCount++
+        if (gBoard[i][j].isMine) {
+
+            if (lives > 0) {
+                useLive()
+                document.querySelector('.mines-left-counter b').innerText = --gGame.minesLeft
+                gBoard[i][j].isMarked = true
+                gBoard[i][j].isShown = true
+                renderCellVisible(location, gBoard[i][j].value)
+                checkVictory()
+            } else {
+                gBoard[i][j].isShown = true
+                for (var d = 0; d < gMines.length; d++) {
+                    renderCellVisible(gMines[d].location, MINE)
+                }
+                gGame.isOn = false
+                document.querySelector('.modal-game-over').hidden = false
+                document.querySelector('.smiley').innerText = '😥'
+                clearInterval(gTimeInterval)
+            }
+
+        } else if (typeof (gBoard[i][j]).value === 'number') {
+            gBoard[i][j].isShown = true
+            renderCellVisible(location, gBoard[i][j].value)
+            checkVictory()
+        } else {
+            expandShown(gBoard, i, j)
+            checkVictory()
+        }
+
     }
 }
 
@@ -191,8 +227,6 @@ function createMine(id, height, width) {
     var mine = {
         id: id,
         location: { i: i, j: j },
-        isCover: false,
-        isExplode: false
     }
     return mine
 }
@@ -210,41 +244,90 @@ function checkVictory() {
     }
     if (victory) {
         gGame.isOn = false
+        clearInterval(gTimeInterval)
+        setbestScore()
         document.querySelector('.modal-victorious').hidden = false
         document.querySelector('.smiley').innerText = '😎'
-        console.log('WINNER')
     }
 }
 
+function customGame() {
+    var height = +prompt('Choose the height')
+    var width = +prompt('Choose the width')
+    var minesNum = +prompt('Choose the mines number')
+    initGame(height, width, minesNum)
+}
 
+function getHint() {
+    if (!gGame.isOn) {
+        return
+    }
+    if (hints > 0) {
+        hintOn = true
+        hints--
+        document.querySelector('span.hints-count').innerText = `(${hints})`
+    }
+}
 
-// expandShown functions:
-
-function expandShown(gBoard, rowIdx, colIdx) {
-    var newRowIdx = []
-    var newColIdx = []
+function revealCellsHint(gBoard, rowIdx, colIdx) {
     for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
-        if (i < 0 || i >= gBoard.length) continue
+        if (i < 0 || i >= gBoard.length) continue;
         for (var j = colIdx - 1; j <= colIdx + 1; j++) {
-            if (j < 0 || j >= gBoard[0].length) continue
-            if (i === rowIdx && j === colIdx) continue
+            if (j < 0 || j >= gBoard[0].length) continue;
 
             var location = { i: i, j: j }
-            gBoard[i][j].isShown = true
             renderCellVisible(location, gBoard[i][j].value)
-            if (gBoard[i][j].value === EMPTY) {
-                newRowIdx.push(i)
-                newColIdx.push(j)
+        }
+    }
+    setTimeout(function () {
+        for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
+            if (i < 0 || i >= gBoard.length) continue;
+            for (var j = colIdx - 1; j <= colIdx + 1; j++) {
+                if (j < 0 || j >= gBoard[0].length) continue;
+                if (!gBoard[i][j].isShown) {
+                    location = { i: i, j: j }
+                    renderCellHidden(location, gBoard[i][j].value)
+                }
             }
         }
-    }
-    console.log(newRowIdx)
-    console.log(newColIdx)
+    }, 1000)
+}
 
-    for (var i = 0; i < newRowIdx.length; i++) {
-        expandShown(gBoard, newRowIdx[i], newColIdx[i])
+function getSafeClick() {
+    if (!gGame.isOn) {
+        return
     }
-    checkVictory()
+    if (firstClick) {
+        gTimeInterval = setInterval(displayTime, 1000)
+        firstClick = false
+    }
+    if (safeClicks > 0) {
+        var i = getRandomInt(0, gGame.level.height)
+        var j = getRandomInt(0, gGame.level.width)
+        if (!gBoard[i][j].isShown && !gBoard[i][j].isMine && !gBoard[i][j].isMarked) {
+            var location = { i: i, j: j }
+            renderCellVisible(location, gBoard[i][j].value)
+            safeClicks--
+            document.querySelector('span.safe-clicks-count').innerText = `(${safeClicks})`
+            setTimeout(function () { renderCellHidden(location, gBoard[i][j].value) }, 1000)
+        } else {
+            getSafeClick()
+        }
+
+    }
+}
+
+function useLive() {
+    if (lives === 3) {
+        lives--
+        document.querySelector('.lives-count b').innerText = '❤️❤️'
+    } else if (lives === 2) {
+        lives--
+        document.querySelector('.lives-count b').innerText = '❤️'
+    } else if (lives === 1) {
+        lives--
+        document.querySelector('.lives-count b').innerText = '0'
+    }
 }
 
 function expandShown(gBoard, rowIdx, colIdx) {
@@ -252,11 +335,20 @@ function expandShown(gBoard, rowIdx, colIdx) {
         if (i < 0 || i >= gBoard.length) continue
         for (var j = colIdx - 1; j <= colIdx + 1; j++) {
             if (j < 0 || j >= gBoard[0].length) continue
-            if (i === rowIdx && j === colIdx) continue
-            var location = { i: i, j: j }
-            gBoard[i][j].isShown = true
-            renderCellVisible(location, gBoard[i][j].value)
+            if (gBoard[i][j].isShown === true) continue
+            if (i === rowIdx && j === colIdx) {
+                var location = { i: i, j: j }
+                gBoard[i][j].isShown = true
+                renderCellVisible(location, gBoard[i][j].value)
+            } else if (typeof (gBoard[i][j]).value === 'number') {
+                var location = { i: i, j: j }
+                gBoard[i][j].isShown = true
+                renderCellVisible(location, gBoard[i][j].value)
+            } else {
+                expandShown(gBoard, i, j)
+            }
+
         }
+
     }
-    checkVictory()
 }
