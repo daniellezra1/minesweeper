@@ -177,6 +177,8 @@ function checkCell(i, j) {
     if (hintOn) {
         revealCellsHint(gBoard, i, j)
         hintOn = false
+    } else if (cell.isShown) {
+        return
     } else {
 
         if (cell.isMine) {
@@ -211,6 +213,8 @@ function checkCell(i, j) {
             checkVictory()
         } else {
             expandShown(gBoard, i, j)
+            gMoves.push(locations)
+            locations = []
             checkVictory()
         }
     }
@@ -330,7 +334,6 @@ function getSafeClick() {
         } else {
             getSafeClick()
         }
-
     }
 }
 
@@ -345,8 +348,10 @@ function useLive() {
     lives--
 }
 
+
+var locations = []
+
 function expandShown(gBoard, rowIdx, colIdx) {
-    var locations = []
     for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
         if (i < 0 || i >= gBoard.length) continue
         for (var j = colIdx - 1; j <= colIdx + 1; j++) {
@@ -363,7 +368,6 @@ function expandShown(gBoard, rowIdx, colIdx) {
             }
         }
     }
-    gMoves.push(...locations)
 }
 
 function checkVictory() {
@@ -425,41 +429,56 @@ function setMinesByUser(i, j) {
 }
 
 function undoClicked() {
+    var lastMove
+    var cell
+    if (!elModalVictorious.hidden) return
     if (gMoves.length === 0) return
-    var lastMove = gMoves[gMoves.length - 1]
-    var cell = gBoard[lastMove.i][lastMove.j]
-    if (cell.isMine && cell.isShown) {
-        if (cell.isMarked) {
-            cell.isMarked = false
+    if (gMoves[gMoves.length - 1].length) {
+        for (var d = 0; d < gMoves[gMoves.length - 1].length; d++) {
+            lastMove = gMoves[gMoves.length - 1][d]
+            cell = gBoard[lastMove.i][lastMove.j]
             cell.isShown = false
-            lives++
-            elMinLeftCounter.innerText = ++gGame.minesLeft
-            if (elLivesCounter.innerText === '0') {
-                elLivesCounter.innerText = ''
+            renderCellHidden(lastMove, cell.value)
+            shownCount()
+        }
+        gMoves.pop()
+    } else {
+        lastMove = gMoves[gMoves.length - 1]
+        cell = gBoard[lastMove.i][lastMove.j]
+        if (!gBoard[lastMove.i][lastMove.j]) gMoves.pop()
+        if (cell.isMine && cell.isShown) {
+            if (cell.isMarked) {
+                cell.isMarked = false
+                cell.isShown = false
+                lives++
+                elMinLeftCounter.innerText = ++gGame.minesLeft
+                if (elLivesCounter.innerText === '0') {
+                    elLivesCounter.innerText = ''
+                }
+                elLivesCounter.innerText += LIVE
+                renderCellHidden(lastMove, cell.value)
+                shownCount()
+                gMoves.pop()
+            } else {
+                cell.isShown = false
+                for (var d = 0; d < gMines.length; d++) {
+                    renderCellHidden(gMines[d].location, MINE)
+                }
+                gGame.isOn = true
+                document.querySelector('.smiley').innerText = '😃'
+                elModalGameOver.hidden = true
+                gTimeInterval = setInterval(displayTime, 1000)
+                gMoves.pop()
             }
-            elLivesCounter.innerText += LIVE
+        } else if (cell.isMarked || (!cell.isShown && !cell.isMarked)) {
+            markedCell(lastMove.i, lastMove.j)
+            gMoves.pop()
+            gMoves.pop()
+        } else if (cell.isShown) {
+            cell.isShown = false
             renderCellHidden(lastMove, cell.value)
             shownCount()
             gMoves.pop()
-        } else {
-            cell.isShown = false
-            for (var d = 0; d < gMines.length; d++) {
-                renderCellHidden(gMines[d].location, MINE)
-            }
-            gGame.isOn = true
-            document.querySelector('.smiley').innerText = '😃'
-            elModalGameOver.hidden = true
-            gTimeInterval = setInterval(displayTime, 1000)
-            gMoves.pop()
         }
-    } else if (cell.isMarked || (!cell.isShown && !cell.isMarked)) {
-        markedCell(lastMove.i, lastMove.j)
-        gMoves.pop()
-        gMoves.pop()
-    } else if (cell.isShown) {
-        cell.isShown = false
-        renderCellHidden(lastMove, cell.value)
-        shownCount()
-        gMoves.pop()
     }
 }
