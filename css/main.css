@@ -74,7 +74,7 @@ button {
     border: 2px solid thistle;
     color: white;
     outline: none;
-    width: 80px;
+    width: 72.4px;
     height: 25px;
     border-radius: 4px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -82,7 +82,11 @@ button {
 }
 
 button.safe-clicks {
-    width: 105px;
+    width: 132px;
+}
+
+button.hints {
+    width: 89px;
 }
 
 button:hover {

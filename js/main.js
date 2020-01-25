@@ -24,12 +24,15 @@ const MINE = '💣'
 const FLAG = '🚩'
 const EMPTY = ''
 const LIVE = '❤️'
+const HINT = '💡'
+const SAFE = '🎁'
 
 var firstClick = true
 var hints = 3
 var hintOn = false
 var safeClicks = 3
 var lives = 3
+var custom = 0
 
 // el Variables:
 
@@ -74,9 +77,9 @@ function reset() {
     gGame.secsPassed = '00:00'
     hints = 3
     hintOn = false
-    elHintsCount.innerText = `(${hints})`
+    elHintsCount.innerText = HINT + HINT + HINT
     safeClicks = 3
-    elSafeClickCounter.innerText = `(${safeClicks})`
+    elSafeClickCounter.innerText = SAFE + SAFE + SAFE
     lives = 3
     elLivesCounter.innerText = LIVE + LIVE + LIVE
     pauseTime()
@@ -137,7 +140,9 @@ function countMinesAround(gBoard, rowIdx, colIdx) {
 
 function cellClicked(event, i, j) {
     if (event.button === 0 || event.button === 1) {
-        if (firstClick) {
+        if (custom > 0) {
+            setMinesByUser(i, j)
+        } else if (firstClick) {
             gTimeInterval = setInterval(displayTime, 1000)
             firstClick = false
             while (gBoard[i][j].value === MINE) {
@@ -181,6 +186,8 @@ function checkCell(i, j) {
                 elMinLeftCounter.innerText = --gGame.minesLeft
                 cell.isMarked = true
                 cell.isShown = true
+                var audioBomb = new Audio('sound/bomb.mp3')
+                audioBomb.play()
                 renderCellVisible(location, LIVE)
                 checkVictory()
             } else {
@@ -192,6 +199,8 @@ function checkCell(i, j) {
                 elModalGameOver.hidden = false
                 document.querySelector('.smiley').innerText = '😥'
                 clearInterval(gTimeInterval)
+                var audioFail = new Audio('sound/fail.mp3')
+                audioFail.play()
             }
             gMoves.push(location)
 
@@ -260,26 +269,31 @@ function getHint() {
     }
     if (hints > 0) {
         hintOn = true
+        if (hints === 3) {
+            elHintsCount.innerText = HINT + HINT
+        } else if (hints === 2) {
+            elHintsCount.innerText = HINT
+        } else if (hints === 1) {
+            elHintsCount.innerText = '(0)'
+        }
         hints--
-        elHintsCount.innerText = `(${hints})`
     }
 }
 
 function revealCellsHint(gBoard, rowIdx, colIdx) {
     for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
-        if (i < 0 || i >= gBoard.length) continue;
+        if (i < 0 || i >= gBoard.length) continue
         for (var j = colIdx - 1; j <= colIdx + 1; j++) {
-            if (j < 0 || j >= gBoard[0].length) continue;
-
+            if (j < 0 || j >= gBoard[0].length) continue
             var location = { i: i, j: j }
             renderCellVisible(location, gBoard[i][j].value)
         }
     }
     setTimeout(function () {
         for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
-            if (i < 0 || i >= gBoard.length) continue;
+            if (i < 0 || i >= gBoard.length) continue
             for (var j = colIdx - 1; j <= colIdx + 1; j++) {
-                if (j < 0 || j >= gBoard[0].length) continue;
+                if (j < 0 || j >= gBoard[0].length) continue
                 if (!gBoard[i][j].isShown) {
                     location = { i: i, j: j }
                     renderCellHidden(location, gBoard[i][j].value)
@@ -304,9 +318,15 @@ function getSafeClick() {
         if (!cell.isShown && !cell.isMine && !cell.isMarked) {
             var location = { i: i, j: j }
             renderCellVisible(location, cell.value)
-            safeClicks--
-            elSafeClickCounter.innerText = `(${safeClicks})`
             setTimeout(function () { renderCellHidden(location, cell.value) }, 1000)
+            if (safeClicks === 3) {
+                elSafeClickCounter.innerText = SAFE + SAFE
+            } else if (safeClicks === 2) {
+                elSafeClickCounter.innerText = SAFE
+            } else if (safeClicks === 1) {
+                elSafeClickCounter.innerText = '(0)'
+            }
+            safeClicks--
         } else {
             getSafeClick()
         }
@@ -316,15 +336,13 @@ function getSafeClick() {
 
 function useLive() {
     if (lives === 3) {
-        lives--
         elLivesCounter.innerText = LIVE + LIVE
     } else if (lives === 2) {
-        lives--
         elLivesCounter.innerText = LIVE
     } else if (lives === 1) {
-        lives--
         elLivesCounter.innerText = '0'
     }
+    lives--
 }
 
 function expandShown(gBoard, rowIdx, colIdx) {
@@ -367,6 +385,8 @@ function checkVictory() {
         setbestScore()
         elModalVictorious.hidden = false
         document.querySelector('.smiley').innerText = '😎'
+        var audioWin = new Audio('sound/win.mp3')
+        audioWin.play()
     }
 }
 
@@ -374,7 +394,34 @@ function customGame() {
     var height = +prompt('Choose the height')
     var width = +prompt('Choose the width')
     var minesNum = +prompt('Choose the mines number')
+    alert(`Please place the ${minesNum} mines in the board`)
+    custom = minesNum
     restart(height, width, minesNum)
+}
+
+function setMinesByUser(i, j) {
+    if (custom === gGame.minesLeft) {
+        gBoard = []
+        gBoard = createBoard(gGame.level.height, gGame.level.width)
+        gMines = []
+        firstClick = false
+    }
+    var cell = gBoard[i][j]
+    var mine = {
+        location: { i: i, j: j },
+    }
+    cell.value = MINE
+    cell.isMine = true
+    renderCellVisible(mine.location, '❌')
+    gMines.push(mine)
+    if (custom === 1) {
+        setMinesNegsCount()
+        gTimeInterval = setInterval(displayTime, 1000)
+        for (var d = 0; d < gMines.length; d++) {
+            renderCellHidden(gMines[d].location, MINE)
+        }
+    }
+    custom--
 }
 
 function undoClicked() {
