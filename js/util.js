@@ -14,11 +14,11 @@ function createBoard(height, width) {
             }
         }
     }
-    return board;
+    return board
 }
 
 function renderBoard(board) {
-    var strHTML = `<p class="smiley" onclick="initGame()">😃</p><table border="0"><tbody>`
+    var strHTML = `<p class="smiley" onclick="restart()">😃</p><table border="0"><tbody>`
     for (var i = 0; i < board.length; i++) {
         strHTML += `<tr>`
         for (var j = 0; j < board[0].length; j++) {
@@ -65,6 +65,7 @@ var seconds = 0
 var minutes = 0
 var newSeconds = 0
 var newMinutes = 0
+var elStopwatch = document.querySelector('.stopwatch b')
 
 function displayTime() {
     seconds++
@@ -74,7 +75,9 @@ function displayTime() {
         seconds = 0
         minutes++
     }
-    document.querySelector('.stopwatch b').innerText = `${newMinutes}:${newSeconds}`
+    gGame.secsPassed = `${newMinutes}:${newSeconds}`
+    elStopwatch.innerText = `${newMinutes}:${newSeconds}`
+    gGame.shownCount = shownCount()
 }
 
 function pauseTime() {
@@ -84,13 +87,23 @@ function pauseTime() {
     minutes = 0
     newSeconds = 0
     newMinutes = 0
-    document.querySelector('.stopwatch b').innerText = '00:00'
+    elStopwatch.innerText = '00:00'
 }
 
 function getRandomInt(min, max) {
     min = Math.ceil(min)
     max = Math.floor(max)
     return Math.floor(Math.random() * (max - min)) + min
+}
+
+function shownCount() {
+    var count = 0
+    for (var i = 0; i < gBoard.length; i++) {
+        for (var j = 0; j < gBoard[0].length; j++) {
+            if (gBoard[i][j].isShown) count++
+        }
+    }
+    return count
 }
 
 // Retrieve the object from storage
@@ -102,17 +115,33 @@ function getbestScore() {
         var bestScore = JSON.parse(retrievedObject)
         var levelBestTime = document.querySelector('.best-score b')
         if (gGame.level.height === 4 && gGame.level.width === 4) {
-            levelBestTime.innerText = bestScore.Easy
-            gGame.bestScore.Easy = bestScore.Easy
+            if (bestScore.Easy === '99:99') {
+                levelBestTime.innerText = '----'
+            } else {
+                levelBestTime.innerText = bestScore.Easy
+                gGame.bestScore.Easy = bestScore.Easy
+            }
         } else if (gGame.level.height === 8 && gGame.level.width === 8) {
-            levelBestTime.innerText = bestScore.Hard
-            gGame.bestScore.Hard = bestScore.Hard
+            if (bestScore.Hard === '99:99') {
+                levelBestTime.innerText = '----'
+            } else {
+                levelBestTime.innerText = bestScore.Hard
+                gGame.bestScore.Hard = bestScore.Hard
+            }
         } else if (gGame.level.height === 12 && gGame.level.width === 12) {
-            levelBestTime.innerText = bestScore.Extreme
-            gGame.bestScore.Extreme = bestScore.Extreme
+            if (bestScore.Extreme === '99:99') {
+                levelBestTime.innerText = '----'
+            } else {
+                levelBestTime.innerText = bestScore.Extreme
+                gGame.bestScore.Extreme = bestScore.Extreme
+            }
         } else {
-            levelBestTime.innerText = bestScore.Custom
-            gGame.bestScore.Custom = bestScore.Custom
+            if (bestScore.Custom === '99:99') {
+                levelBestTime.innerText = '----'
+            } else {
+                levelBestTime.innerText = bestScore.Custom
+                gGame.bestScore.Custom = bestScore.Custom
+            }
         }
     }
 }

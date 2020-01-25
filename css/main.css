@@ -4,6 +4,13 @@ body {
     background-color: antiquewhite;
 }
 
+.header {
+    font-family: 'Josefin Sans', sans-serif;
+    font-family: 'Lobster', cursive;
+    font-size: 1.5rem;
+    padding-top: 2px;
+}
+
 .game-board {
     display: inline-block;
 }
@@ -21,10 +28,7 @@ td {
     cursor: pointer;
 }
 
-td:hover {
-    background-color: thistle;
-}
-
+td:hover,
 .cell:hover {
     background-color: thistle;
 }
@@ -36,14 +40,16 @@ td:hover {
   margin: auto;
   left: 0;
   right: 0;
-  top: 28px;
-  width: 200px;
+  top: 30px;
+  width: 250px;
   height: 70px;
   box-shadow: 0px 0px 10px 1px rgba(0,0,0,0.62);
   text-align: center;
   padding: 5px;
   background-color: rosybrown;
   border: 3px solid white;
+  border-radius: 5px;
+  font-weight: bolder;
 }
 
 .visible {
@@ -62,7 +68,41 @@ td:hover {
 
 button {
     margin-top: 5px;
+    padding-bottom: 10px;
     cursor: pointer;
+    background-color: rosybrown;
+    border: 2px solid thistle;
+    color: white;
+    outline: none;
+    width: 80px;
+    height: 25px;
+    border-radius: 4px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 400i;
+}
+
+button.safe-clicks {
+    width: 105px;
+}
+
+button:hover {
+    transition-duration: 0.4s;
+    background-color: thistle;
+    color: black;
+    font-weight: bolder;
+}
+
+.modal-game-over button,
+.modal-victorious button {
+    width: 120px;
+    font-weight: 600;
+}
+
+.modal-game-over button:hover,
+.modal-victorious button:hover {
+    width: 120px;
+    color: black;
+    font-weight: 700;
 }
 
 .mines-left-counter,
@@ -74,27 +114,28 @@ button {
 .best-score {
     display: inline-block;
     width: 200px;
-    font-weight: 800;
+    font-weight: 700;
     background-color: rosybrown;
     border: 2px solid thistle;
     padding: 2px;
     padding-bottom: 4px;
     margin-bottom: 18px;
-    border-radius: 15px;
+    border-radius: 8px;
+    margin-top: 0;
 }
 
 .set-mode {
     position: absolute;
     border-radius: 50%;
-    height: 50px;
-    width: 50px;
+    height: 55px;
+    width: 55px;
     top: 5px;
     right: 10px;
     font-weight: bold;
     background-color: rosybrown;
-      border: 2px solid white;
-  cursor: pointer;
-
+    border: 2px solid thistle;
+    cursor: pointer;
+    padding-top: 4px;
 }
 
 .dark-mode {
